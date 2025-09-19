@@ -1,0 +1,75 @@
+# Docker Workspace Configuration for OpenHands
+# This file configures workspace path resolution and microagent loading in Docker mode
+
+[workspace]
+# Docker-specific workspace path resolution
+# Paths are tried in order until one is found
+search_paths = [
+    "/workspace",           # Docker mounted workspace (primary)
+    "/openhands/code",      # Docker container working directory  
+    "${PWD}",               # Current working directory
+    "${HOME}"               # User home directory
+]
+
+# Priority order for path selection
+priority_order = ["mounted", "container", "current", "home"]
+
+# Enable fallback to multiple search paths
+enable_fallback = true
+
+[microagents]
+# Microagent loading configuration
+search_subdirs = [
+    ".openhands/microagents",   # Standard OpenHands microagents
+    ".lithium/agents",          # Lithium-generated agents  
+    ".build/agents"             # Custom build agents
+]
+
+# Load microagents from different sources
+load_global = true              # Load from OpenHands installation
+load_user_home = true           # Load from ~/.openhands/microagents/
+load_workspace = true           # Load from workspace directories
+fallback_enabled = true         # Enable path fallback on failures
+
+# Microagent file patterns to load
+file_patterns = [
+    "*.md",                     # Markdown microagents
+    "*.yaml",                   # YAML specifications
+    "*.yml"                     # YML specifications  
+]
+
+[agent_sdk]
+# Integration with OpenHands Agent SDK
+enable_spec_loading = true
+
+# Paths to search for agent specifications
+spec_search_paths = [
+    ".build/specs",             # Custom build specifications
+    ".openhands/specs",         # OpenHands specifications
+    ".lithium/specs"            # Lithium specifications
+]
+
+# Agent SDK configuration
+default_agent_type = "DockerAwareAgent"
+enable_context_management = true
+enable_tool_integration = true
+
+[logging]
+# Logging configuration for debugging
+enable_microagent_debug = true
+enable_path_resolution_debug = true
+log_level = "INFO"
+
+# Log format for debugging
+debug_log_format = "[MICROAGENT] {timestamp} - {level} - {message}"
+
+[compatibility]
+# Compatibility settings for different OpenHands versions
+openhands_version = "0.57+"
+backward_compatibility = true
+strict_path_validation = false
+
+# Feature flags
+enable_docker_detection = true
+enable_multi_path_search = true
+enable_agent_sdk_integration = true

@@ -1,0 +1,301 @@
+From e09f93aa75c9d358b3b6a5ccdfdc95644d34faf0 Mon Sep 17 00:00:00 2001
+From: mamoodi <mamoodiha@gmail.com>
+Date: Fri, 19 Sep 2025 12:40:56 -0400
+Subject: [PATCH 09/12] Release 0.57.0 (#10981)
+
+Co-authored-by: Ray Myers <ray.myers@gmail.com>
+Co-authored-by: openhands <openhands@all-hands.dev>
+Co-authored-by: sp.wack <83104063+amanape@users.noreply.github.com>
+Co-authored-by: Rohit Malhotra <rohitvinodmalhotra@gmail.com>
+---
+ Development.md                              | 2 +-
+ README.md                                   | 6 +++---
+ README_CN.md                                | 6 +++---
+ README_JA.md                                | 6 +++---
+ containers/dev/compose.yml                  | 2 +-
+ docker-compose.yml                          | 2 +-
+ docs/usage/how-to/cli-mode.mdx              | 4 ++--
+ docs/usage/how-to/headless-mode.mdx         | 4 ++--
+ docs/usage/llms/local-llms.mdx              | 8 ++++----
+ docs/usage/local-setup.mdx                  | 6 +++---
+ frontend/package-lock.json                  | 4 ++--
+ frontend/package.json                       | 2 +-
+ openhands/runtime/impl/kubernetes/README.md | 2 +-
+ pyproject.toml                              | 2 +-
+ 14 files changed, 28 insertions(+), 28 deletions(-)
+
+diff --git a/Development.md b/Development.md
+index ecef8dbb4..7a4c5ce8b 100644
+--- a/Development.md
++++ b/Development.md
+@@ -159,7 +159,7 @@ poetry run pytest ./tests/unit/test_*.py
+ To reduce build time (e.g., if no changes were made to the client-runtime component), you can use an existing Docker
+ container image by setting the SANDBOX_RUNTIME_CONTAINER_IMAGE environment variable to the desired Docker image.
+ 
+-Example: `export SANDBOX_RUNTIME_CONTAINER_IMAGE=ghcr.io/all-hands-ai/runtime:0.56-nikolaik`
++Example: `export SANDBOX_RUNTIME_CONTAINER_IMAGE=ghcr.io/all-hands-ai/runtime:0.57-nikolaik`
+ 
+ ## Develop inside Docker container
+ 
+diff --git a/README.md b/README.md
+index 0b8073097..368ea21d2 100644
+--- a/README.md
++++ b/README.md
+@@ -79,17 +79,17 @@ You'll find OpenHands running at [http://localhost:3000](http://localhost:3000)
+ You can also run OpenHands directly with Docker:
+ 
+ ```bash
+-docker pull docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik
++docker pull docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik
+ 
+ docker run -it --rm --pull=always \
+-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik \
++    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik \
+     -e LOG_ALL_EVENTS=true \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v ~/.openhands:/.openhands \
+     -p 3000:3000 \
+     --add-host host.docker.internal:host-gateway \
+     --name openhands-app \
+-    docker.all-hands.dev/all-hands-ai/openhands:0.56
++    docker.all-hands.dev/all-hands-ai/openhands:0.57
+ ```
+ 
+ </details>
+diff --git a/README_CN.md b/README_CN.md
+index 5122da9fe..6fb15100b 100644
+--- a/README_CN.md
++++ b/README_CN.md
+@@ -51,17 +51,17 @@ OpenHands也可以使用Docker在本地系统上运行。
+ 
+ 
+ ```bash
+-docker pull docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik
++docker pull docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik
+ 
+ docker run -it --rm --pull=always \
+-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik \
++    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik \
+     -e LOG_ALL_EVENTS=true \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v ~/.openhands:/.openhands \
+     -p 3000:3000 \
+     --add-host host.docker.internal:host-gateway \
+     --name openhands-app \
+-    docker.all-hands.dev/all-hands-ai/openhands:0.56
++    docker.all-hands.dev/all-hands-ai/openhands:0.57
+ ```
+ 
+ > **注意**: 如果您在0.44版本之前使用过OpenHands，您可能需要运行 `mv ~/.openhands-state ~/.openhands` 来将对话历史迁移到新位置。
+diff --git a/README_JA.md b/README_JA.md
+index 52d41526e..6446c35ab 100644
+--- a/README_JA.md
++++ b/README_JA.md
+@@ -42,17 +42,17 @@ OpenHandsはDockerを利用してローカル環境でも実行できます。
+ > 公共ネットワークで実行していますか？[Hardened Docker Installation Guide](https://docs.all-hands.dev/usage/runtimes/docker#hardened-docker-installation)を参照して、ネットワークバインディングの制限や追加のセキュリティ対策を実施してください。
+ 
+ ```bash
+-docker pull docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik
++docker pull docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik
+ 
+ docker run -it --rm --pull=always \
+-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik \
++    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik \
+     -e LOG_ALL_EVENTS=true \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v ~/.openhands:/.openhands \
+     -p 3000:3000 \
+     --add-host host.docker.internal:host-gateway \
+     --name openhands-app \
+-    docker.all-hands.dev/all-hands-ai/openhands:0.56
++    docker.all-hands.dev/all-hands-ai/openhands:0.57
+ ```
+ 
+ **注**: バージョン0.44以前のOpenHandsを使用していた場合は、会話履歴を移行するために `mv ~/.openhands-state ~/.openhands` を実行してください。
+diff --git a/containers/dev/compose.yml b/containers/dev/compose.yml
+index 4367ff306..884e65a49 100644
+--- a/containers/dev/compose.yml
++++ b/containers/dev/compose.yml
+@@ -12,7 +12,7 @@ services:
+       - SANDBOX_API_HOSTNAME=host.docker.internal
+       - DOCKER_HOST_ADDR=host.docker.internal
+       #
+-      - SANDBOX_RUNTIME_CONTAINER_IMAGE=${SANDBOX_RUNTIME_CONTAINER_IMAGE:-ghcr.io/all-hands-ai/runtime:0.56-nikolaik}
++      - SANDBOX_RUNTIME_CONTAINER_IMAGE=${SANDBOX_RUNTIME_CONTAINER_IMAGE:-ghcr.io/all-hands-ai/runtime:0.57-nikolaik}
+       - SANDBOX_USER_ID=${SANDBOX_USER_ID:-1234}
+       - WORKSPACE_MOUNT_PATH=${WORKSPACE_BASE:-$PWD/workspace}
+     ports:
+diff --git a/docker-compose.yml b/docker-compose.yml
+index d8b26f6b5..3ab2ba83c 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -7,7 +7,7 @@ services:
+     image: openhands:latest
+     container_name: openhands-app-${DATE:-}
+     environment:
+-      - SANDBOX_RUNTIME_CONTAINER_IMAGE=${SANDBOX_RUNTIME_CONTAINER_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik}
++      - SANDBOX_RUNTIME_CONTAINER_IMAGE=${SANDBOX_RUNTIME_CONTAINER_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik}
+       #- SANDBOX_USER_ID=${SANDBOX_USER_ID:-1234} # enable this only if you want a specific non-root sandbox user but you will have to manually adjust permissions of ~/.openhands for this user
+       - WORKSPACE_MOUNT_PATH=${WORKSPACE_BASE:-$PWD/workspace}
+     ports:
+diff --git a/docs/usage/how-to/cli-mode.mdx b/docs/usage/how-to/cli-mode.mdx
+index 0b0affb4e..94fdeddb9 100644
+--- a/docs/usage/how-to/cli-mode.mdx
++++ b/docs/usage/how-to/cli-mode.mdx
+@@ -113,7 +113,7 @@ The conversation history will be saved in `~/.openhands/sessions`.
+ ```bash
+ docker run -it \
+     --pull=always \
+-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik \
++    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik \
+     -e SANDBOX_USER_ID=$(id -u) \
+     -e SANDBOX_VOLUMES=$SANDBOX_VOLUMES \
+     -e LLM_API_KEY=$LLM_API_KEY \
+@@ -122,7 +122,7 @@ docker run -it \
+     -v ~/.openhands:/.openhands \
+     --add-host host.docker.internal:host-gateway \
+     --name openhands-app-$(date +%Y%m%d%H%M%S) \
+-    docker.all-hands.dev/all-hands-ai/openhands:0.56 \
++    docker.all-hands.dev/all-hands-ai/openhands:0.57 \
+     python -m openhands.cli.entry --override-cli-mode true
+ ```
+ 
+diff --git a/docs/usage/how-to/headless-mode.mdx b/docs/usage/how-to/headless-mode.mdx
+index 32d81163e..8b985a2e0 100644
+--- a/docs/usage/how-to/headless-mode.mdx
++++ b/docs/usage/how-to/headless-mode.mdx
+@@ -61,7 +61,7 @@ export GITHUB_TOKEN="your-token"  # Required for repository operations
+ # Run OpenHands
+ docker run -it \
+     --pull=always \
+-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik \
++    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik \
+     -e SANDBOX_USER_ID=$(id -u) \
+     -e SANDBOX_VOLUMES=$SANDBOX_VOLUMES \
+     -e LLM_API_KEY=$LLM_API_KEY \
+@@ -73,7 +73,7 @@ docker run -it \
+     -v ~/.openhands:/.openhands \
+     --add-host host.docker.internal:host-gateway \
+     --name openhands-app-$(date +%Y%m%d%H%M%S) \
+-    docker.all-hands.dev/all-hands-ai/openhands:0.56 \
++    docker.all-hands.dev/all-hands-ai/openhands:0.57 \
+     python -m openhands.core.main -t "write a bash script that prints hi"
+ ```
+ 
+diff --git a/docs/usage/llms/local-llms.mdx b/docs/usage/llms/local-llms.mdx
+index 9b67e7cdf..d2982b31d 100644
+--- a/docs/usage/llms/local-llms.mdx
++++ b/docs/usage/llms/local-llms.mdx
+@@ -68,23 +68,23 @@ Download and install the LM Studio desktop app from [lmstudio.ai](https://lmstud
+ 1. Check [the installation guide](/usage/local-setup) and ensure all prerequisites are met before running OpenHands, then run:
+ 
+ ```bash
+-docker pull docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik
++docker pull docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik
+ 
+ docker run -it --rm --pull=always \
+-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik \
++    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik \
+     -e LOG_ALL_EVENTS=true \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v ~/.openhands:/.openhands \
+     -p 3000:3000 \
+     --add-host host.docker.internal:host-gateway \
+     --name openhands-app \
+-    docker.all-hands.dev/all-hands-ai/openhands:0.56
++    docker.all-hands.dev/all-hands-ai/openhands:0.57
+ ```
+ 
+ 2. Wait until the server is running (see log below):
+ ```
+ Digest: sha256:e72f9baecb458aedb9afc2cd5bc935118d1868719e55d50da73190d3a85c674f
+-Status: Image is up to date for docker.all-hands.dev/all-hands-ai/openhands:0.56
++Status: Image is up to date for docker.all-hands.dev/all-hands-ai/openhands:0.57
+ Starting OpenHands...
+ Running OpenHands as root
+ 14:22:13 - openhands:INFO: server_config.py:50 - Using config class None
+diff --git a/docs/usage/local-setup.mdx b/docs/usage/local-setup.mdx
+index 1383e4a0b..30c664740 100644
+--- a/docs/usage/local-setup.mdx
++++ b/docs/usage/local-setup.mdx
+@@ -116,17 +116,17 @@ Note that you'll still need `uv` installed for the default MCP servers to work p
+ <Accordion title="Docker Command (Click to expand)">
+ 
+ ```bash
+-docker pull docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik
++docker pull docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik
+ 
+ docker run -it --rm --pull=always \
+-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik \
++    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik \
+     -e LOG_ALL_EVENTS=true \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v ~/.openhands:/.openhands \
+     -p 3000:3000 \
+     --add-host host.docker.internal:host-gateway \
+     --name openhands-app \
+-    docker.all-hands.dev/all-hands-ai/openhands:0.56
++    docker.all-hands.dev/all-hands-ai/openhands:0.57
+ ```
+ 
+ </Accordion>
+diff --git a/frontend/package-lock.json b/frontend/package-lock.json
+index c2bd14252..8f22476fb 100644
+--- a/frontend/package-lock.json
++++ b/frontend/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "openhands-frontend",
+-  "version": "0.56.0",
++  "version": "0.57.0",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "openhands-frontend",
+-      "version": "0.56.0",
++      "version": "0.57.0",
+       "dependencies": {
+         "@heroui/react": "^2.8.3",
+         "@heroui/use-infinite-scroll": "^2.2.11",
+diff --git a/frontend/package.json b/frontend/package.json
+index 5027e24c8..9ffbcfb0e 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "openhands-frontend",
+-  "version": "0.56.0",
++  "version": "0.57.0",
+   "private": true,
+   "type": "module",
+   "engines": {
+diff --git a/openhands/runtime/impl/kubernetes/README.md b/openhands/runtime/impl/kubernetes/README.md
+index bd61d45f7..ec6e826f2 100644
+--- a/openhands/runtime/impl/kubernetes/README.md
++++ b/openhands/runtime/impl/kubernetes/README.md
+@@ -40,7 +40,7 @@ Two configuration options are required to use the Kubernetes runtime:
+ 2. **Runtime Container Image**: Specify the container image to use for the runtime environment
+    ```toml
+    [sandbox]
+-   runtime_container_image = "docker.all-hands.dev/all-hands-ai/runtime:0.56-nikolaik"
++   runtime_container_image = "docker.all-hands.dev/all-hands-ai/runtime:0.57-nikolaik"
+    ```
+ 
+ #### Additional Kubernetes Options
+diff --git a/pyproject.toml b/pyproject.toml
+index 2a6471e12..561ca5d07 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -6,7 +6,7 @@ requires = [
+ 
+ [tool.poetry]
+ name = "openhands-ai"
+-version = "0.56.0"
++version = "0.57.0"
+ description = "OpenHands: Code Less, Make More"
+ authors = [ "OpenHands" ]
+ license = "MIT"
+-- 
+2.34.1
+

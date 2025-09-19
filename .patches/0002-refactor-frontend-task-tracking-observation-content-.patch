@@ -1,0 +1,377 @@
+From 9c9fa780b0a5c4454d5ce42c64f3e2294ee85535 Mon Sep 17 00:00:00 2001
+From: Hiep Le <69354317+hieptl@users.noreply.github.com>
+Date: Fri, 19 Sep 2025 20:03:05 +0700
+Subject: [PATCH 02/12] refactor(frontend): task tracking observation content
+ (#11002)
+
+---
+ .../task-tracking-observation-content.tsx     | 92 +------------------
+ .../chat/task-tracking/result-section.tsx     | 21 +++++
+ .../chat/task-tracking/status-badge.tsx       | 17 ++++
+ .../chat/task-tracking/status-icon.tsx        |  9 ++
+ .../features/chat/task-tracking/task-item.tsx | 43 +++++++++
+ .../chat/task-tracking/task-list-section.tsx  | 34 +++++++
+ frontend/src/ui/typography.tsx                | 14 +++
+ frontend/src/utils/utils.ts                   | 35 +++++++
+ 8 files changed, 177 insertions(+), 88 deletions(-)
+ create mode 100644 frontend/src/components/features/chat/task-tracking/result-section.tsx
+ create mode 100644 frontend/src/components/features/chat/task-tracking/status-badge.tsx
+ create mode 100644 frontend/src/components/features/chat/task-tracking/status-icon.tsx
+ create mode 100644 frontend/src/components/features/chat/task-tracking/task-item.tsx
+ create mode 100644 frontend/src/components/features/chat/task-tracking/task-list-section.tsx
+
+diff --git a/frontend/src/components/features/chat/task-tracking-observation-content.tsx b/frontend/src/components/features/chat/task-tracking-observation-content.tsx
+index 42a4e5f2c..e4dd95c2b 100644
+--- a/frontend/src/components/features/chat/task-tracking-observation-content.tsx
++++ b/frontend/src/components/features/chat/task-tracking-observation-content.tsx
+@@ -1,6 +1,6 @@
+-import React from "react";
+-import { useTranslation } from "react-i18next";
+ import { TaskTrackingObservation } from "#/types/core/observations";
++import { TaskListSection } from "./task-tracking/task-list-section";
++import { ResultSection } from "./task-tracking/result-section";
+ 
+ interface TaskTrackingObservationContentProps {
+   event: TaskTrackingObservation;
+@@ -9,101 +9,17 @@ interface TaskTrackingObservationContentProps {
+ export function TaskTrackingObservationContent({
+   event,
+ }: TaskTrackingObservationContentProps) {
+-  const { t } = useTranslation();
+-
+   const { command, task_list: taskList } = event.extras;
+   const shouldShowTaskList = command === "plan" && taskList.length > 0;
+ 
+-  const getStatusIcon = (status: string) => {
+-    switch (status) {
+-      case "todo":
+-        return "⏳";
+-      case "in_progress":
+-        return "🔄";
+-      case "done":
+-        return "✅";
+-      default:
+-        return "❓";
+-    }
+-  };
+-
+-  const getStatusClassName = (status: string) => {
+-    if (status === "done") {
+-      return "bg-green-800 text-green-200";
+-    }
+-    if (status === "in_progress") {
+-      return "bg-yellow-800 text-yellow-200";
+-    }
+-    return "bg-gray-700 text-gray-300";
+-  };
+-
+   return (
+     <div className="flex flex-col gap-4">
+       {/* Task List section - only show for 'plan' command */}
+-      {shouldShowTaskList && (
+-        <div className="flex flex-col gap-2">
+-          <div className="flex items-center justify-between">
+-            <h3 className="text-sm font-semibold text-gray-300">
+-              {t("TASK_TRACKING_OBSERVATION$TASK_LIST")} ({taskList.length}{" "}
+-              {taskList.length === 1 ? "item" : "items"})
+-            </h3>
+-          </div>
+-          <div className="p-3 bg-gray-900 rounded-md overflow-auto text-gray-300 max-h-[400px] shadow-inner">
+-            <div className="space-y-3">
+-              {taskList.map((task, index) => (
+-                <div key={task.id} className="border-l-2 border-gray-600 pl-3">
+-                  <div className="flex items-start gap-2">
+-                    <span className="text-lg">
+-                      {getStatusIcon(task.status)}
+-                    </span>
+-                    <div className="flex-1">
+-                      <div className="flex items-center gap-2 mb-1">
+-                        <span className="text-sm text-gray-400">
+-                          {index + 1}.
+-                        </span>
+-                        <span
+-                          className={`text-xs px-2 py-1 rounded uppercase font-semibold ${getStatusClassName(
+-                            task.status,
+-                          )}`}
+-                        >
+-                          {task.status.replace("_", " ")}
+-                        </span>
+-                      </div>
+-                      <h4 className="font-medium text-white mb-1">
+-                        {task.title}
+-                      </h4>
+-                      <p className="text-xs text-gray-400 mb-1">
+-                        {t("TASK_TRACKING_OBSERVATION$TASK_ID")}: {task.id}
+-                      </p>
+-                      {task.notes && (
+-                        <p className="text-sm text-gray-300 italic">
+-                          {t("TASK_TRACKING_OBSERVATION$TASK_NOTES")}:{" "}
+-                          {task.notes}
+-                        </p>
+-                      )}
+-                    </div>
+-                  </div>
+-                </div>
+-              ))}
+-            </div>
+-          </div>
+-        </div>
+-      )}
++      {shouldShowTaskList && <TaskListSection taskList={taskList} />}
+ 
+       {/* Result message - only show if there's meaningful content */}
+       {event.content && event.content.trim() && (
+-        <div className="flex flex-col gap-2">
+-          <div className="flex items-center justify-between">
+-            <h3 className="text-sm font-semibold text-gray-300">
+-              {t("TASK_TRACKING_OBSERVATION$RESULT")}
+-            </h3>
+-          </div>
+-          <div className="p-3 bg-gray-900 rounded-md overflow-auto text-gray-300 shadow-inner">
+-            <pre className="whitespace-pre-wrap text-sm">
+-              {event.content.trim()}
+-            </pre>
+-          </div>
+-        </div>
++        <ResultSection content={event.content} />
+       )}
+     </div>
+   );
+diff --git a/frontend/src/components/features/chat/task-tracking/result-section.tsx b/frontend/src/components/features/chat/task-tracking/result-section.tsx
+new file mode 100644
+index 000000000..0cd06e3a4
+--- /dev/null
++++ b/frontend/src/components/features/chat/task-tracking/result-section.tsx
+@@ -0,0 +1,21 @@
++import { useTranslation } from "react-i18next";
++import { Typography } from "#/ui/typography";
++
++interface ResultSectionProps {
++  content: string;
++}
++
++export function ResultSection({ content }: ResultSectionProps) {
++  const { t } = useTranslation();
++
++  return (
++    <div className="flex flex-col gap-2">
++      <div className="flex items-center justify-between">
++        <Typography.H3>{t("TASK_TRACKING_OBSERVATION$RESULT")}</Typography.H3>
++      </div>
++      <div className="p-3 bg-gray-900 rounded-md overflow-auto text-gray-300 shadow-inner">
++        <pre className="whitespace-pre-wrap text-sm">{content.trim()}</pre>
++      </div>
++    </div>
++  );
++}
+diff --git a/frontend/src/components/features/chat/task-tracking/status-badge.tsx b/frontend/src/components/features/chat/task-tracking/status-badge.tsx
+new file mode 100644
+index 000000000..d6428f196
+--- /dev/null
++++ b/frontend/src/components/features/chat/task-tracking/status-badge.tsx
+@@ -0,0 +1,17 @@
++import { getStatusClassName } from "#/utils/utils";
++
++interface StatusBadgeProps {
++  status: string;
++}
++
++export function StatusBadge({ status }: StatusBadgeProps) {
++  return (
++    <span
++      className={`text-xs px-2 py-1 rounded uppercase font-semibold ${getStatusClassName(
++        status,
++      )}`}
++    >
++      {status.replace("_", " ")}
++    </span>
++  );
++}
+diff --git a/frontend/src/components/features/chat/task-tracking/status-icon.tsx b/frontend/src/components/features/chat/task-tracking/status-icon.tsx
+new file mode 100644
+index 000000000..d3181ea3a
+--- /dev/null
++++ b/frontend/src/components/features/chat/task-tracking/status-icon.tsx
+@@ -0,0 +1,9 @@
++import { getStatusIcon } from "#/utils/utils";
++
++interface StatusIconProps {
++  status: string;
++}
++
++export function StatusIcon({ status }: StatusIconProps) {
++  return <span className="text-lg">{getStatusIcon(status)}</span>;
++}
+diff --git a/frontend/src/components/features/chat/task-tracking/task-item.tsx b/frontend/src/components/features/chat/task-tracking/task-item.tsx
+new file mode 100644
+index 000000000..923ed8ea3
+--- /dev/null
++++ b/frontend/src/components/features/chat/task-tracking/task-item.tsx
+@@ -0,0 +1,43 @@
++import { useTranslation } from "react-i18next";
++import { Typography } from "#/ui/typography";
++import { StatusIcon } from "./status-icon";
++import { StatusBadge } from "./status-badge";
++
++interface TaskItemProps {
++  task: {
++    id: string;
++    title: string;
++    status: "todo" | "in_progress" | "done";
++    notes?: string;
++  };
++  index: number;
++}
++
++export function TaskItem({ task, index }: TaskItemProps) {
++  const { t } = useTranslation();
++
++  return (
++    <div className="border-l-2 border-gray-600 pl-3">
++      <div className="flex items-start gap-2">
++        <StatusIcon status={task.status} />
++        <div className="flex-1">
++          <div className="flex items-center gap-2 mb-1">
++            <Typography.Text className="text-sm text-gray-400">
++              {index + 1}.
++            </Typography.Text>
++            <StatusBadge status={task.status} />
++          </div>
++          <h4 className="font-medium text-white mb-1">{task.title}</h4>
++          <Typography.Text className="text-xs text-gray-400 mb-1">
++            {t("TASK_TRACKING_OBSERVATION$TASK_ID")}: {task.id}
++          </Typography.Text>
++          {task.notes && (
++            <Typography.Text className="text-sm text-gray-300 italic">
++              {t("TASK_TRACKING_OBSERVATION$TASK_NOTES")}: {task.notes}
++            </Typography.Text>
++          )}
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/frontend/src/components/features/chat/task-tracking/task-list-section.tsx b/frontend/src/components/features/chat/task-tracking/task-list-section.tsx
+new file mode 100644
+index 000000000..912920252
+--- /dev/null
++++ b/frontend/src/components/features/chat/task-tracking/task-list-section.tsx
+@@ -0,0 +1,34 @@
++import { useTranslation } from "react-i18next";
++import { TaskItem } from "./task-item";
++import { Typography } from "#/ui/typography";
++
++interface TaskListSectionProps {
++  taskList: Array<{
++    id: string;
++    title: string;
++    status: "todo" | "in_progress" | "done";
++    notes?: string;
++  }>;
++}
++
++export function TaskListSection({ taskList }: TaskListSectionProps) {
++  const { t } = useTranslation();
++
++  return (
++    <div className="flex flex-col gap-2">
++      <div className="flex items-center justify-between">
++        <Typography.H3>
++          {t("TASK_TRACKING_OBSERVATION$TASK_LIST")} ({taskList.length}{" "}
++          {taskList.length === 1 ? "item" : "items"})
++        </Typography.H3>
++      </div>
++      <div className="p-3 bg-gray-900 rounded-md overflow-auto text-gray-300 max-h-[400px] shadow-inner">
++        <div className="space-y-3">
++          {taskList.map((task, index) => (
++            <TaskItem key={task.id} task={task} index={index} />
++          ))}
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/frontend/src/ui/typography.tsx b/frontend/src/ui/typography.tsx
+index ae98cdeeb..86668efa0 100644
+--- a/frontend/src/ui/typography.tsx
++++ b/frontend/src/ui/typography.tsx
+@@ -5,6 +5,7 @@ const typographyVariants = cva("", {
+   variants: {
+     variant: {
+       h1: "text-[32px] text-white font-bold leading-5",
++      h3: "text-sm font-semibold text-gray-300",
+       span: "text-sm font-normal text-white leading-5.5",
+       codeBlock:
+         "font-mono text-sm leading-relaxed text-gray-300 whitespace-pre-wrap",
+@@ -52,6 +53,18 @@ export function H1({
+   );
+ }
+ 
++export function H3({
++  className,
++  testId,
++  children,
++}: Omit<TypographyProps, "variant">) {
++  return (
++    <Typography variant="h3" className={className} testId={testId}>
++      {children}
++    </Typography>
++  );
++}
++
+ export function Text({
+   className,
+   testId,
+@@ -78,5 +91,6 @@ export function CodeBlock({
+ 
+ // Attach components to Typography for the expected API
+ Typography.H1 = H1;
++Typography.H3 = H3;
+ Typography.Text = Text;
+ Typography.CodeBlock = CodeBlock;
+diff --git a/frontend/src/utils/utils.ts b/frontend/src/utils/utils.ts
+index 33520031f..fafbe6e4b 100644
+--- a/frontend/src/utils/utils.ts
++++ b/frontend/src/utils/utils.ts
+@@ -474,3 +474,38 @@ export const getConversationStatusLabel = (
+       return "COMMON$UNKNOWN";
+   }
+ };
++
++// Task Tracking Utility Functions
++
++/**
++ * Get the status icon for a task status
++ * @param status The task status
++ * @returns The emoji icon for the status
++ */
++export const getStatusIcon = (status: string) => {
++  switch (status) {
++    case "todo":
++      return "⏳";
++    case "in_progress":
++      return "🔄";
++    case "done":
++      return "✅";
++    default:
++      return "❓";
++  }
++};
++
++/**
++ * Get the CSS class names for a task status badge
++ * @param status The task status
++ * @returns The CSS class names for styling the status badge
++ */
++export const getStatusClassName = (status: string) => {
++  if (status === "done") {
++    return "bg-green-800 text-green-200";
++  }
++  if (status === "in_progress") {
++    return "bg-yellow-800 text-yellow-200";
++  }
++  return "bg-gray-700 text-gray-300";
++};
+-- 
+2.34.1
+

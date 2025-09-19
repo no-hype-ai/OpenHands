@@ -1,0 +1,63 @@
+From 569ac1616302b55156e0a0dbb6255dc8f52dbf73 Mon Sep 17 00:00:00 2001
+From: Alona <alona@all-hands.dev>
+Date: Fri, 19 Sep 2025 03:18:38 -0400
+Subject: [PATCH 01/12] Improve token refresh error logging (#11026)
+
+---
+ openhands/integrations/provider.py |  5 ++++-
+ openhands/runtime/base.py          | 13 ++++++++++---
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/openhands/integrations/provider.py b/openhands/integrations/provider.py
+index b25530dcb..f4a26d8a3 100644
+--- a/openhands/integrations/provider.py
++++ b/openhands/integrations/provider.py
+@@ -188,7 +188,10 @@ class ProviderHandler:
+             return SecretStr(data.token)
+ 
+         except Exception as e:
+-            logger.warning(f'Failed to fetch latest token for provider {provider}: {e}')
++            logger.error(
++                f'Failed to fetch latest token for provider {provider}: {e}',
++                exc_info=True,
++            )
+ 
+         return None
+ 
+diff --git a/openhands/runtime/base.py b/openhands/runtime/base.py
+index 48ff2882d..bd81daa3e 100644
+--- a/openhands/runtime/base.py
++++ b/openhands/runtime/base.py
+@@ -340,10 +340,16 @@ class Runtime(FileEditRuntimeMixin):
+             sid=self.sid,
+         )
+ 
+-        logger.info(f'Fetching latest provider tokens for runtime: {self.sid}')
++        logger.info(
++            f'Fetching latest provider tokens for runtime: {self.sid}, '
++            f'providers: {providers_called}'
++        )
+         env_vars = await provider_handler.get_env_vars(
+             providers=providers_called, expose_secrets=False, get_latest=True
+         )
++        logger.info(
++            f'Successfully fetched {len(env_vars)} token(s) for runtime: {self.sid}'
++        )
+ 
+         if len(env_vars) == 0:
+             return
+@@ -355,8 +361,9 @@ class Runtime(FileEditRuntimeMixin):
+                 )
+             self.add_env_vars(provider_handler.expose_env_vars(env_vars))
+         except Exception as e:
+-            logger.warning(
+-                f'Failed export latest github token to runtime: {self.sid}, {e}'
++            logger.error(
++                f'Failed to export latest github token to runtime: {self.sid}, {e}',
++                exc_info=True,
+             )
+ 
+     async def _handle_action(self, event: Action) -> None:
+-- 
+2.34.1
+
