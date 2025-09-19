@@ -844,7 +844,19 @@ fi
         characters.
         """
         loaded_microagents: list[BaseMicroagent] = []
-        microagents_dir = self.workspace_root / '.openhands' / 'microagents'
+
+        # Docker-aware microagent path resolution - GitHub issue #4 fix
+        # In Docker mode, workspace is mounted at /workspace but runtime looks at /openhands/code
+        docker_workspace_path = Path('/workspace') / '.openhands' / 'microagents'
+        if docker_workspace_path.exists() and Path('/openhands/code').exists():
+            microagents_dir = docker_workspace_path
+            self.log(
+                'info',
+                f'[DOCKER MODE] Using mounted workspace microagents: {microagents_dir}',
+            )
+        else:
+            microagents_dir = self.workspace_root / '.openhands' / 'microagents'
+
         repo_root = None
 
         # Check for user/org level microagents if a repository is selected
@@ -855,7 +867,21 @@ fi
 
             # Continue with repository-specific microagents
             repo_root = self.workspace_root / selected_repository.split('/')[-1]
-            microagents_dir = repo_root / '.openhands' / 'microagents'
+            # Docker-aware repo microagent path resolution
+            docker_repo_path = (
+                Path('/workspace')
+                / selected_repository.split('/')[-1]
+                / '.openhands'
+                / 'microagents'
+            )
+            if docker_repo_path.exists() and Path('/openhands/code').exists():
+                microagents_dir = docker_repo_path
+                self.log(
+                    'info',
+                    f'[DOCKER MODE] Using mounted repo microagents: {microagents_dir}',
+                )
+            else:
+                microagents_dir = repo_root / '.openhands' / 'microagents'
 
         self.log(
             'info',
