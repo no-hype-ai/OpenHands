@@ -846,8 +846,10 @@ fi
         loaded_microagents: list[BaseMicroagent] = []
 
         # Docker-aware microagent path resolution - GitHub issue #4 fix
-        # In Docker mode, workspace is mounted at /workspace but runtime looks at /openhands/code
-        docker_workspace_path = Path('/workspace') / '.openhands' / 'microagents'
+        # In Docker mode, workspace is mounted at /.openhands/workspace but runtime looks at /openhands/code
+        docker_workspace_path = (
+            Path('/.openhands/workspace') / '.openhands' / 'microagents'
+        )
         if docker_workspace_path.exists() and Path('/openhands/code').exists():
             microagents_dir = docker_workspace_path
             self.log(
@@ -869,7 +871,7 @@ fi
             repo_root = self.workspace_root / selected_repository.split('/')[-1]
             # Docker-aware repo microagent path resolution
             docker_repo_path = (
-                Path('/workspace')
+                Path('/.openhands/workspace')
                 / selected_repository.split('/')[-1]
                 / '.openhands'
                 / 'microagents'
