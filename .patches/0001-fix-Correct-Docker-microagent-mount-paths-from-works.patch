@@ -1,0 +1,41 @@
+From 8558719c92b5b5901a8e529576bc8dbd8e82c9dc Mon Sep 17 00:00:00 2001
+From: Penguin Bot <penguin@no-hype.ai>
+Date: Sat, 20 Sep 2025 00:44:58 +0000
+Subject: [PATCH] fix: Correct Docker microagent mount paths from /workspace to
+ /.openhands/workspace
+
+- Fix docker_workspace_path: /workspace -> /.openhands/workspace
+- Fix docker_repo_path: /workspace -> /.openhands/workspace
+- Resolves Docker microagent loading failures (Issues #4, #7, #11)
+- Now correctly loads 8+ workspace microagents in Docker mode
+---
+ openhands/runtime/base.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/openhands/runtime/base.py b/openhands/runtime/base.py
+index fe41f0f2e..d80a797a9 100644
+--- a/openhands/runtime/base.py
++++ b/openhands/runtime/base.py
+@@ -846,8 +846,8 @@ fi
+         loaded_microagents: list[BaseMicroagent] = []
+ 
+         # Docker-aware microagent path resolution - GitHub issue #4 fix
+-        # In Docker mode, workspace is mounted at /workspace but runtime looks at /openhands/code
+-        docker_workspace_path = Path('/workspace') / '.openhands' / 'microagents'
++        # In Docker mode, workspace is mounted at /.openhands/workspace but runtime looks at /openhands/code
++        docker_workspace_path = Path('/.openhands/workspace') / '.openhands' / 'microagents'
+         if docker_workspace_path.exists() and Path('/openhands/code').exists():
+             microagents_dir = docker_workspace_path
+             self.log(
+@@ -869,7 +869,7 @@ fi
+             repo_root = self.workspace_root / selected_repository.split('/')[-1]
+             # Docker-aware repo microagent path resolution
+             docker_repo_path = (
+-                Path('/workspace')
++                Path('/.openhands/workspace')
+                 / selected_repository.split('/')[-1]
+                 / '.openhands'
+                 / 'microagents'
+-- 
+2.34.1
+
