@@ -35,13 +35,19 @@ import {
   hasUserEvent as hasV1UserEvent,
   shouldRenderEvent as shouldRenderV1Event,
 } from "#/components/v1/chat";
-import { useUploadFiles } from "#/hooks/mutation/use-upload-files";
+import { useUnifiedUploadFiles } from "#/hooks/mutation/use-unified-upload-files";
 import { useConfig } from "#/hooks/query/use-config";
 import { validateFiles } from "#/utils/file-validation";
 import { useConversationStore } from "#/state/conversation-store";
 import ConfirmationModeEnabled from "./confirmation-mode-enabled";
-import { isV0Event, isV1Event } from "#/types/v1/type-guards";
+import {
+  isV0Event,
+  isV1Event,
+  isSystemPromptEvent,
+  isConversationStateUpdateEvent,
+} from "#/types/v1/type-guards";
 import { useActiveConversation } from "#/hooks/query/use-active-conversation";
+import { useTaskPolling } from "#/hooks/query/use-task-polling";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -57,6 +63,7 @@ export function ChatInterface() {
   const { data: conversation } = useActiveConversation();
   const { errorMessage } = useErrorMessageStore();
   const { isLoadingMessages } = useWsClient();
+  const { isTask } = useTaskPolling();
   const { send } = useSendMessage();
   const storeEvents = useEventStore((state) => state.events);
   const { setOptimisticUserMessage, getOptimisticUserMessage } =
@@ -81,7 +88,7 @@ export function ChatInterface() {
   const [feedbackModalIsOpen, setFeedbackModalIsOpen] = React.useState(false);
   const { selectedRepository, replayJson } = useInitialQueryStore();
   const params = useParams();
-  const { mutateAsync: uploadFiles } = useUploadFiles();
+  const { mutateAsync: uploadFiles } = useUnifiedUploadFiles();
 
   const optimisticUserMessage = getOptimisticUserMessage();
 
@@ -111,7 +118,14 @@ export function ChatInterface() {
             event.source === "agent" &&
             event.action !== "system",
         ) ||
-      storeEvents.filter(isV1Event).some((event) => event.source === "agent"),
+      storeEvents
+        .filter(isV1Event)
+        .some(
+          (event) =>
+            event.source === "agent" &&
+            !isSystemPromptEvent(event) &&
+            !isConversationStateUpdateEvent(event),
+        ),
     [storeEvents],
   );
 
@@ -208,7 +222,7 @@ export function ChatInterface() {
           onScroll={(e) => onChatBodyScroll(e.currentTarget)}
           className="custom-scrollbar-always flex flex-col grow overflow-y-auto overflow-x-hidden px-4 pt-4 gap-2 fast-smooth-scroll"
         >
-          {isLoadingMessages && !isV1Conversation && (
+          {isLoadingMessages && !isV1Conversation && !isTask && (
             <div className="flex justify-center">
               <LoadingSpinner size="small" />
             </div>
@@ -237,7 +251,7 @@ export function ChatInterface() {
           <div className="flex justify-between relative">
             <div className="flex items-center gap-1">
               <ConfirmationModeEnabled />
-              {totalEvents > 0 && (
+              {totalEvents > 0 && !isV1Conversation && (
                 <TrajectoryActions
                   onPositiveFeedback={() =>
                     onClickShareFeedbackActionButton("positive")
@@ -262,7 +276,7 @@ export function ChatInterface() {
           <InteractiveChatBox onSubmit={handleSendMessage} />
         </div>
 
-        {config?.APP_MODE !== "saas" && (
+        {config?.APP_MODE !== "saas" && !isV1Conversation && (
           <FeedbackModal
             isOpen={feedbackModalIsOpen}
             onClose={() => setFeedbackModalIsOpen(false)}
