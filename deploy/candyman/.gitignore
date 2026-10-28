@@ -1,9 +1,0 @@
-.env
-.env.*
-!.env.example
-*.pem
-*secret*
-secrets.json
-settings.json
-api-key.txt
-secret-key.txt
