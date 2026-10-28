@@ -1,0 +1,28 @@
+# Always-on OpenHands on candyman (no-hype-ai fork).
+# UI bound to localhost — reach via Tailscale SSH tunnel or Tailscale Serve.
+# Secrets stay in ~/.openhands (host mount); never commit them here.
+#
+# Lift up:
+#   cd ~/Code/OpenHands
+#   cp deploy/candyman/.env.example deploy/candyman/.env   # edit
+#   docker compose -f deploy/candyman/docker-compose.yml --env-file deploy/candyman/.env up -d
+name: openhands-candyman
+
+services:
+  openhands:
+    image: ${OPENHANDS_IMAGE:-docker.all-hands.dev/all-hands-ai/openhands:0.59}
+    container_name: openhands-candyman
+    restart: unless-stopped
+    environment:
+      SANDBOX_RUNTIME_CONTAINER_IMAGE: ${SANDBOX_RUNTIME_CONTAINER_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.59-nikolaik}
+      LOG_ALL_EVENTS: ${LOG_ALL_EVENTS:-true}
+      WORKSPACE_MOUNT_PATH: ${WORKSPACE_BASE:-/home/nick/openhands-workspace}
+    ports:
+      - "127.0.0.1:${OPENHANDS_PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${OPENHANDS_STATE_DIR:-/home/nick/.openhands}:/.openhands
+      - ${WORKSPACE_BASE:-/home/nick/openhands-workspace}:/opt/workspace_base
+    pull_policy: always
